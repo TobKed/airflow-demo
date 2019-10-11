@@ -29,13 +29,6 @@ from airflow.operators.python_operator import PythonOperator
 SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK")
 
 
-dag = DAG(
-    dag_id="dadjoke_to_slack",
-    default_args={"start_date": airflow.utils.dates.days_ago(2)},
-    schedule_interval="0 0 * * *",
-)
-
-
 def send_slack_message(text):
     data = {"text": text}
     requests.post(
@@ -48,39 +41,44 @@ def send_slack_message(text):
 def send_jokes(**context):
     jokes = []
     for i in range(3):
-        joke = context["task_instance"].xcom_pull(task_ids=f"get_dad_joke_{i}")
+        joke = context["task_instance"].xcom_pull(task_ids=f"get_joke_{i}")
         jokes.append(joke)
 
     text = "\n".join(jokes)
     send_slack_message(text)
 
 
-send_jokes_task = PythonOperator(
-    task_id=f"send_jokes", python_callable=send_jokes, provide_context=True, dag=dag
-)
-
-
 def send_final_message(**context):
     timestamp = datetime.today().strftime("%H:%M")
-    text = f"TIme now is: {timestamp}"
+    text = f"Time now is: {timestamp}"
     send_slack_message(text)
 
 
-send_final_message_task = PythonOperator(
-    task_id=f"send_final_message",
-    python_callable=send_final_message,
-    provide_context=True,
-    dag=dag,
-)
+with DAG(
+    dag_id="chuck_to_slack",
+    default_args={"start_date": airflow.utils.dates.days_ago(2)},
+    schedule_interval="0 0 * * *",
+) as dag:
 
-for i in range(3):
-    get_dad_joke_task = BashOperator(
-        task_id=f"get_dad_joke_{i}",
-        bash_command='curl -H "Accept: text/plain" https://icanhazdadjoke.com/',
+    send_final_message_task = PythonOperator(
+        task_id=f"send_final_message",
+        python_callable=send_final_message,
+        provide_context=True,
         dag=dag,
-        xcom_push=True,
     )
 
-    get_dad_joke_task >> send_jokes_task
+    send_jokes_task = PythonOperator(
+        task_id=f"send_jokes", python_callable=send_jokes, provide_context=True, dag=dag
+    )
 
-send_jokes_task >> send_final_message_task
+    for i in range(3):
+        get_joke_task = BashOperator(
+            task_id=f"get_joke_{i}",
+            bash_command='curl -H "Accept: text/plain" https://api.chucknorris.io/jokes/random',
+            dag=dag,
+            xcom_push=True,
+        )
+
+        get_joke_task >> send_jokes_task
+
+    send_jokes_task >> send_final_message_task
