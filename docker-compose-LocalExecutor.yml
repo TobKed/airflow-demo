@@ -1,4 +1,4 @@
-version: '2.1'
+version: '3.7'
 services:
     postgres:
         image: postgres:9.6
@@ -8,10 +8,13 @@ services:
             - POSTGRES_DB=airflow
 
     webserver:
-        image: puckel/docker-airflow:1.10.4
+        image: puckel/docker-airflow:latest
+#        image: puckel/docker-airflow:1.10.4
         restart: always
         depends_on:
             - postgres
+        env_file:
+            - .env
         environment:
             - LOAD_EX=n
             - EXECUTOR=Local

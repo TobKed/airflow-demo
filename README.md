@@ -1,10 +1,10 @@
-# docker-airflow
-[![CircleCI](https://circleci.com/gh/puckel/docker-airflow/tree/master.svg?style=svg)](https://circleci.com/gh/puckel/docker-airflow/tree/master)
-[![Docker Build Status](https://img.shields.io/docker/build/puckel/docker-airflow.svg)]()
 
-[![Docker Hub](https://img.shields.io/badge/docker-ready-blue.svg)](https://hub.docker.com/r/puckel/docker-airflow/)
-[![Docker Pulls](https://img.shields.io/docker/pulls/puckel/docker-airflow.svg)]()
-[![Docker Stars](https://img.shields.io/docker/stars/puckel/docker-airflow.svg)]()
+# airflow-demo
+
+1. Create `.env` file with Slack webhook url (look `.env.example`)
+2. Run: `docker-compose -f docker-compose-LocalExecutor.yml up`
+
+## docker-airflow
 
 This repository contains **Dockerfile** of [apache-airflow](https://github.com/apache/incubator-airflow) for [Docker](https://www.docker.com/)'s [automated build](https://registry.hub.docker.com/u/puckel/docker-airflow/) published to the public [Docker Hub Registry](https://registry.hub.docker.com/).
 
@@ -125,3 +125,8 @@ You can also use this to run a bash shell or any other command in the same envir
 # Wanna help?
 
 Fork, improve and PR. ;-)
+
+
+
+docker build --rm --build-arg AIRFLOW_DEPS="slack" -t puckel/docker-airflow .
+docker run -p 8080:8080 puckel/docker-airflow webserver
