@@ -27,6 +27,7 @@ from airflow.operators.bash_operator import BashOperator
 from airflow.operators.python_operator import PythonOperator
 
 SLACK_WEBHOOK = os.environ.get("SLACK_WEBHOOK")
+NR_OF_JOKES = 3
 
 
 def send_slack_message(text):
@@ -40,7 +41,7 @@ def send_slack_message(text):
 
 def send_jokes(**context):
     jokes = []
-    for i in range(3):
+    for i in range(NR_OF_JOKES):
         joke = context["task_instance"].xcom_pull(task_ids=f"get_joke_{i}")
         jokes.append(joke)
 
@@ -50,7 +51,7 @@ def send_jokes(**context):
 
 def send_final_message(**context):
     timestamp = datetime.today().strftime("%H:%M")
-    text = f"Time now is: {timestamp}"
+    text = f"UTC time now is: {timestamp}"
     send_slack_message(text)
 
 
@@ -71,7 +72,7 @@ with DAG(
         task_id=f"send_jokes", python_callable=send_jokes, provide_context=True, dag=dag
     )
 
-    for i in range(3):
+    for i in range(NR_OF_JOKES):
         get_joke_task = BashOperator(
             task_id=f"get_joke_{i}",
             bash_command='curl -H "Accept: text/plain" https://api.chucknorris.io/jokes/random',
