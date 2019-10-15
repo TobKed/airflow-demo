@@ -58,18 +58,21 @@ def send_final_message(**context):
 with DAG(
     dag_id="chuck_to_slack",
     default_args={"start_date": airflow.utils.dates.days_ago(2)},
-    schedule_interval="0 0 * * *",
+    schedule_interval="0 0 * * *",  # @daily
 ) as dag:
 
     send_final_message_task = PythonOperator(
-        task_id=f"send_final_message",
+        task_id="send_final_message",
         python_callable=send_final_message,
         provide_context=True,
         dag=dag,
     )
 
     send_jokes_task = PythonOperator(
-        task_id=f"send_jokes", python_callable=send_jokes, provide_context=True, dag=dag
+        task_id="send_jokes",
+        python_callable=send_jokes,
+        provide_context=True,
+        dag=dag
     )
 
     for i in range(NR_OF_JOKES):
